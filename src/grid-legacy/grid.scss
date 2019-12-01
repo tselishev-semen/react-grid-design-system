@@ -1,0 +1,145 @@
+$gutter: 20px;
+$columns: 12;
+$column-offset: ($columns - 1) / $columns * $gutter;
+
+//12x + 11* 20 = 100%
+//1column = (100%-20*11)/12
+//2column = 1column*2 +20px =
+//1/12% = x + (20*11)/12
+//2/12x = x1 +(all gutters-1)/12
+
+//claculate aprozimate amount of which must be removed from the grid
+@function countColumnOffset($columnsCount, $allCount) {
+  @return ($allCount - $columnsCount)* $gutter / $allCount
+}
+
+@function calculateColumnWidth($columnWidth, $allColumnsCount) {
+  $oneColumnWidth: percentage(1 / $allColumnsCount);
+  $restGuttersInPx: ($allColumnsCount - 1) * $gutter;
+  $includedGuttersInPx: ($columnWidth - 1) * $gutter;
+
+  $correctionInPx: $includedGuttersInPx -$restGuttersInPx/$allColumnsCount*$columnWidth;
+  $columnWidth: calc(#{$oneColumnWidth * $columnWidth} + #{$correctionInPx});
+  @return $columnWidth;
+}
+
+@function calculateOffset($columnWidth, $allColumnsCount){
+  $oneColumnWidth: percentage(1 / $allColumnsCount);
+  $restGuttersInPx: ($allColumnsCount - 1) * $gutter;
+  $includedGuttersInPx: ($columnWidth - 1) * $gutter;
+
+  //+ 1 gutter
+  $correctionInPx: $includedGuttersInPx -$restGuttersInPx/$allColumnsCount*$columnWidth + $gutter;
+  $columnWidth: calc(#{$oneColumnWidth * $columnWidth} + #{$correctionInPx});
+  @return $columnWidth;
+
+}
+@mixin generate-col-layout($modifier: "") {
+  @for $_grid-columns-count from 1 through 12 {
+    @for $_current-column-count from 1 through $_grid-columns-count {
+      &-#{$_grid-columns-count}-#{$_current-column-count}#{$modifier} {
+        $width: calculateColumnWidth($_current-column-count, $_grid-columns-count) ;
+        box-sizing: border-box;
+        flex-basis: $width;
+        flex-grow: 1;
+        flex-shrink: 0;
+        max-width: $width;
+      }
+    }
+  }
+
+}
+
+.fallback-grid {
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 auto;
+  max-width: 1200px;
+
+  &--justify-normal {
+    justify-items: normal;
+  }
+
+  &--justify-center {
+    justify-items: center;
+  }
+
+  &--align-normal {
+    align-items: normal;
+  }
+
+  &--align-end {
+    align-items: flex-end;
+  }
+
+  &--align-center {
+    align-items: center;
+  }
+}
+
+//$mixin generate-offsets
+
+
+$color: #563d7c;
+
+.fallback-column {
+
+  @for $_grid-columns-count from 1 through 12 {
+    @for $_offset from 0 through $_grid-columns-count - 1 {
+      &-offset-#{$_grid-columns-count}-#{$_offset} {
+        margin-left: calculateOffset($_offset, $_grid-columns-count);
+      }
+    }
+  }
+  @for $_grid-columns-count from 1 through 12 {
+    @for $_end from 0 through $_grid-columns-count {
+      $offset: $_grid-columns-count -$_end;
+      &--last-#{$_grid-columns-count}-#{$offset} {
+        margin-right: calculateOffset($offset, $_grid-columns-count);
+      }
+    }
+  }
+  background-color: rgba($color, 0.15);
+
+  &--not-last {
+    margin-right: $gutter;
+  }
+  &--last{
+
+  }
+
+  @include generate-col-layout();
+  @media (min-width: 551px) {
+    @include generate-col-layout("--medium");
+  }
+
+  @media (min-width: 1024px) {
+    @include generate-col-layout("--large");
+  }
+
+  &--justify-normal {
+    display: flex;
+    justify-self: normal;
+  }
+
+  &--justify-center {
+    display: flex;
+    justify-content: center;
+  }
+
+  &--align-normal {
+    display: flex;
+    align-self: normal;
+  }
+
+  &--align-end {
+    display: flex;
+    align-self: flex-end;
+  }
+
+  &--align-center {
+    display: flex;
+    align-self: center;
+  }
+}
