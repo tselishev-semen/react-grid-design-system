@@ -23,7 +23,7 @@ IE 10+
 
 
 ##Demo
-
+<a href="https://grid-design-system-for-react.netlify.com/">Demo link</a>
 ```bash
 npm install
 npm start
