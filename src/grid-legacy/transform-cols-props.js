@@ -8,9 +8,8 @@ export const transformCssGridToFlexGrid = (configuration) => {
     const nextColStart = nextCol ? nextCol.start : null;
     const isFirst = index === 0 || start < prevColEnd;
     const isLast = !nextCol || end > nextColStart;
-
     const offset = isFirst ? start - 1 : start - prevColEnd;
-    return {start, end, isFirst, isLast, offset};
+    return {start, end, isLast, offset};
   });
 };
 
@@ -37,21 +36,18 @@ const extractConfiguration = (children) => {
 };
 
 export const transformToFallbackMode = (children) => {
-  let preparedChildren = Array.isArray(children) ? children : [children];
-  preparedChildren = preparedChildren.filter(Boolean);
+  const preparedChildren = [].concat(children).filter(Boolean);
   const {s, m, l} = extractConfiguration(preparedChildren);
   const sTransformed = transformCssGridToFlexGrid(s);
   const mTransformed = transformCssGridToFlexGrid(m);
   const lTransformed = transformCssGridToFlexGrid(l);
 
   return React.Children.map(preparedChildren, (component, index) => {
-    const newProps = component
-      ? {
-          s: sTransformed[index],
-          m: mTransformed[index],
-          l: lTransformed[index]
-        }
-      : null;
+    const newProps = {
+      s: sTransformed[index],
+      m: mTransformed[index],
+      l: lTransformed[index]
+    };
     return React.cloneElement(component, newProps);
   });
 };

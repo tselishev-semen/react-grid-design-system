@@ -1,5 +1,10 @@
+@import "../config/grid";
+
+$_min-start: 1;
+$_max-end: $number-columns + 1;
+
 @mixin generate-nested-grids($modifier: "") {
-  @for $i from 1 through 13 {
+  @for $i from $_min-start through $_max-end {
     &-#{$i}#{$modifier} {
       grid-template-columns: repeat(#{$i}, 1fr);
     }
@@ -7,8 +12,8 @@
 }
 
 @mixin generate-column($modifier: "") {
-  @for $i from 1 through 13 {
-    @for $j from $i through 13 {
+  @for $i from $_min-start through $_max-end {
+    @for $j from $i through $_max-end {
       @if ($j != $i) {
         &-#{$i}-#{$j}#{$modifier} {
           grid-column: #{$i}/#{$j};
@@ -19,13 +24,12 @@
 }
 
 .grid {
-  box-sizing: content-box;
+  box-sizing: content-box; //set default for consistency across browsers
   display: grid;
-  grid-column-gap: 20px;
-  grid-template-columns: repeat(12, 1fr);
-  //justify-self: auto;
+  grid-column-gap: $gutter;
+  grid-template-columns: repeat($number-columns, 1fr);
   margin: 0 auto;
-  max-width: 1200px;
+  max-width: $max-width;
 
   &--justify-normal {
     justify-items: normal;
@@ -49,19 +53,16 @@
 
   @include generate-nested-grids();
 
-  @media (min-width: 551px) {
-    @include generate-nested-grids("--medium");
+  @include medium-screen {
+    @include generate-nested-grids($medium-modifier);
   }
 
-  @media (min-width: 1024px) {
-    @include generate-nested-grids("--large");
+  @include large-screen {
+    @include generate-nested-grids($large-modifier);
   }
 }
-$color: #563d7c;
 
-.col {
-  background-color: rgba($color, 0.15);
-
+.column {
   @include generate-column();
 
   &--justify-normal {
@@ -84,11 +85,11 @@ $color: #563d7c;
     align-self: center;
   }
 
-  @media (min-width: 551px) {
-    @include generate-column("--medium");
+  @include medium-screen {
+    @include generate-column($medium-modifier);
   }
 
-  @media (min-width: 1024px) {
-    @include generate-column("--large");
+  @include large-screen {
+    @include generate-column($large-modifier);
   }
 }

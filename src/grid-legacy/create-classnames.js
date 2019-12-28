@@ -1,4 +1,4 @@
-import {ALIGN_ITEMS, JUSTIFY_ITEMS} from './constants';
+import {ALIGN_ITEMS, JUSTIFY_ITEMS} from '../config/constants';
 import classnames from 'classnames';
 
 const SMALL_MODIFIER = '';
@@ -7,17 +7,18 @@ const LARGE_MODIFIER = '--large';
 
 const generateColClasses = (column, modifier, parentColumn) => {
   if (column) {
-    const {start, end, isLast, isFirst, offset} = column;
+    const {start, end, isLast, offset} = column;
 
     const allColumnsCount = parentColumn ? parentColumn.end - parentColumn.start : 12;
     const columnWidth = end - start;
+    let rightGap = allColumnsCount + 1 - end;
     return [
       'fallback-column',
       `fallback-column-${allColumnsCount}-${columnWidth}${modifier}`,
+      `fallback-column-offset-${allColumnsCount}-${offset}${modifier}`,
       {
-        [`fallback-column-offset-${allColumnsCount}-${offset}`]: offset,
-        'fallback-column--not-last': !isLast,
-        [`fallback-column--last-${allColumnsCount}-${allColumnsCount+ 1-end}`]: isLast,
+        [`fallback-column-not-last${modifier}`]: !isLast,
+        [`fallback-column-last-${allColumnsCount}-${rightGap}${modifier}`]: isLast
       }
     ];
   }
@@ -31,29 +32,24 @@ export const createColumnClassName = (context = {}, {s, m, l}, alignItems, justi
     ...generateColClasses(l, LARGE_MODIFIER, context.l)
   ];
 
-  const alignClasses = {
+  const centringClasses = {
     'fallback-column--align-center': alignItems === ALIGN_ITEMS.center,
+    'fallback-column--align-end': alignItems === ALIGN_ITEMS.end,
     'fallback-column--align-normal': alignItems === ALIGN_ITEMS.normal,
-    'fallback-column--align-end': alignItems === ALIGN_ITEMS.end
-  };
-  const justifyClasses = {
     'fallback-column--justify-center': justifyItems === JUSTIFY_ITEMS.center,
     'fallback-column--justify-normal': justifyItems === JUSTIFY_ITEMS.normal
   };
 
-  return classnames(...classes, alignClasses, justifyClasses);
+  return classnames(...classes, centringClasses);
 };
 
-//todo: do not need subgrid?
 export const createGridClassName = (alignItems, justifyItems) => {
-  const alignClasses = {
+  const centringClasses = {
     'fallback-grid--align-center': alignItems === ALIGN_ITEMS.center,
+    'fallback-grid--align-end': alignItems === ALIGN_ITEMS.end,
     'fallback-grid--align-normal': alignItems === ALIGN_ITEMS.normal,
-    'fallback-grid--align-end': alignItems === ALIGN_ITEMS.end
-  };
-  const justifyClasses = {
     'fallback-grid--justify-center': justifyItems === JUSTIFY_ITEMS.center,
     'fallback-grid--justify-normal': justifyItems === JUSTIFY_ITEMS.normal
   };
-  return classnames('fallback-grid', alignClasses, justifyClasses);
+  return classnames('fallback-grid', centringClasses);
 };

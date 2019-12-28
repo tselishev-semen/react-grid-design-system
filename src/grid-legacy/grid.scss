@@ -1,44 +1,42 @@
-$gutter: 20px;
-$columns: 12;
-$column-offset: ($columns - 1) / $columns * $gutter;
+@import "../config/grid";
 
-//12x + 11* 20 = 100%
-//1column = (100%-20*11)/12
-//2column = 1column*2 +20px =
-//1/12% = x + (20*11)/12
-//2/12x = x1 +(all gutters-1)/12
-
-//claculate aprozimate amount of which must be removed from the grid
-@function countColumnOffset($columnsCount, $allCount) {
-  @return ($allCount - $columnsCount)* $gutter / $allCount
+@function calculateOffsetDelta($k, $n) {
+  //for n-column grid, we have n-1 gutters
+  $all-gutters-for-grid: ($n - 1) * $gutter;
+  //how many amount of gutter contains 1 column
+  $offset-for-1-column: $all-gutters-for-grid/$n;
+  //for k-column slot we have k-1 gutters
+  $gutters-in-column: ($k - 1) * $gutter;
+  @return $gutters-in-column - $offset-for-1-column * $k;
 }
 
-@function calculateColumnWidth($columnWidth, $allColumnsCount) {
-  $oneColumnWidth: percentage(1 / $allColumnsCount);
-  $restGuttersInPx: ($allColumnsCount - 1) * $gutter;
-  $includedGuttersInPx: ($columnWidth - 1) * $gutter;
-
-  $correctionInPx: $includedGuttersInPx -$restGuttersInPx/$allColumnsCount*$columnWidth;
-  $columnWidth: calc(#{$oneColumnWidth * $columnWidth} + #{$correctionInPx});
-  @return $columnWidth;
+/**
+ * The algorithm is the following:
+ * 1) Calculate how many space column takes up. The formula: col_1 = 100%/n - (n-1)/n
+ * 2) Calculate how many space k-column item take : col_1*k + (k-1) * gutter_width
+ * (n-amount of columns in grid)
+ */
+@function calculateColumnWidth($k, $n) {
+  $delta: calculateOffsetDelta($k, $n);
+  $columnWidth: percentage($k / $n);
+  @return calc(#{$columnWidth} + #{$delta});
 }
 
-@function calculateOffset($columnWidth, $allColumnsCount){
-  $oneColumnWidth: percentage(1 / $allColumnsCount);
-  $restGuttersInPx: ($allColumnsCount - 1) * $gutter;
-  $includedGuttersInPx: ($columnWidth - 1) * $gutter;
-
-  //+ 1 gutter
-  $correctionInPx: $includedGuttersInPx -$restGuttersInPx/$allColumnsCount*$columnWidth + $gutter;
-  $columnWidth: calc(#{$oneColumnWidth * $columnWidth} + #{$correctionInPx});
-  @return $columnWidth;
-
+/**
+ * Offset contain columns space with gutter.
+ * Because of the we should add extra gutter compare to calculateColumnWidth
+ */
+@function calculateOffset($k, $n) {
+  $delta: calculateOffsetDelta($k, $n) + $gutter;
+  $columnWidth: percentage($k / $n);
+  @return calc(#{$columnWidth} + #{$delta});
 }
-@mixin generate-col-layout($modifier: "") {
-  @for $_grid-columns-count from 1 through 12 {
+
+@mixin generate-column-classes($modifier: "") {
+  @for $_grid-columns-count from 1 through $number-columns {
     @for $_current-column-count from 1 through $_grid-columns-count {
       &-#{$_grid-columns-count}-#{$_current-column-count}#{$modifier} {
-        $width: calculateColumnWidth($_current-column-count, $_grid-columns-count) ;
+        $width: calculateColumnWidth($_current-column-count, $_grid-columns-count);
         box-sizing: border-box;
         flex-basis: $width;
         flex-grow: 1;
@@ -47,22 +45,41 @@ $column-offset: ($columns - 1) / $columns * $gutter;
       }
     }
   }
-
+  //compute left offset
+  @for $_grid-columns-count from 1 through $number-columns {
+    @for $_offset-columns from 0 through $_grid-columns-count - 1 {
+      &-offset-#{$_grid-columns-count}-#{$_offset-columns}#{$modifier} {
+        margin-left: calculateOffset($_offset-columns, $_grid-columns-count);
+      }
+    }
+  }
+  // for last column we should add right margin to correctly break the line
+  @for $_grid-columns-count from 1 through $number-columns {
+    @for $_end from 0 through $_grid-columns-count {
+      $right-offset-columns: $_grid-columns-count -$_end;
+      &-last-#{$_grid-columns-count}-#{$right-offset-columns}#{$modifier} {
+        margin-right: calculateOffset($right-offset-columns, $_grid-columns-count);
+      }
+    }
+  }
+  //to every columns, except the last we should add gutter
+  &-not-last#{$modifier} {
+    margin-right: $gutter;
+  }
 }
 
 .fallback-grid {
-  box-sizing: border-box;
+  box-sizing: content-box; //set default for consistency across browsers
   display: flex;
   flex-wrap: wrap;
   margin: 0 auto;
-  max-width: 1200px;
-
-  &--justify-normal {
-    justify-items: normal;
-  }
+  max-width: $max-width;
 
   &--justify-center {
-    justify-items: center;
+    .fallback-column {
+      display: flex;
+      justify-content: center;
+    }
   }
 
   &--align-normal {
@@ -78,44 +95,14 @@ $column-offset: ($columns - 1) / $columns * $gutter;
   }
 }
 
-//$mixin generate-offsets
-
-
-$color: #563d7c;
-
 .fallback-column {
-
-  @for $_grid-columns-count from 1 through 12 {
-    @for $_offset from 0 through $_grid-columns-count - 1 {
-      &-offset-#{$_grid-columns-count}-#{$_offset} {
-        margin-left: calculateOffset($_offset, $_grid-columns-count);
-      }
-    }
-  }
-  @for $_grid-columns-count from 1 through 12 {
-    @for $_end from 0 through $_grid-columns-count {
-      $offset: $_grid-columns-count -$_end;
-      &--last-#{$_grid-columns-count}-#{$offset} {
-        margin-right: calculateOffset($offset, $_grid-columns-count);
-      }
-    }
-  }
-  background-color: rgba($color, 0.15);
-
-  &--not-last {
-    margin-right: $gutter;
-  }
-  &--last{
-
+  @include generate-column-classes();
+  @include medium-screen {
+    @include generate-column-classes($medium-modifier);
   }
 
-  @include generate-col-layout();
-  @media (min-width: 551px) {
-    @include generate-col-layout("--medium");
-  }
-
-  @media (min-width: 1024px) {
-    @include generate-col-layout("--large");
+  @include large-screen {
+    @include generate-column-classes($large-modifier);
   }
 
   &--justify-normal {

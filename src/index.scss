@@ -8,6 +8,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-summary{
+summary {
   font-size: 24px
+}
+
+// just fancy design for columns
+[class*='column'] {
+  $color: #563d7c;
+  padding: 5px;
+  border: 1px solid black;
+  background-color: rgba($color, 0.15);
+  margin-bottom: 5px;
 }

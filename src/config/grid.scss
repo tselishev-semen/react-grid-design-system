@@ -1,0 +1,26 @@
+$number-columns: 12;
+$gutter: 20px;
+$medium-modifier: "--medium";
+$large-modifier: "--large";
+
+// 1200px because I have a small laptop and it's just more convenient to tests for me
+$max-width: 1200px;
+
+/**
+ * Mixin to supports 3 different breakpoints for mobile first design:
+ * (0-550 px) - Mobile
+ * (551-1023 px) - Tablet
+ * (1024px + ) - Desktop
+ */
+
+@mixin medium-screen {
+  @media (min-width: 551px) {
+    @content;
+  }
+}
+
+@mixin large-screen {
+  @media (min-width: 1024px) {
+    @content;
+  }
+}
