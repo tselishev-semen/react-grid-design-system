@@ -1,5 +1,7 @@
 #Grid Design System for React
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/0270ad27-d31f-4cdc-9712-776e82b762e4/deploy-status)](https://app.netlify.com/sites/grid-design-system-for-react/deploys)
+
 This is the demo repo with examples of how to create Grid Design System for React.
 
 Supported features by Grid System:
